@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-// DATA PORTFOLIO (LOT di-scale up biar Total > 500 Juta, AVG sesuai screenshot)
+// DATA PORTFOLIO (LOT di-scale up biar Total > Rp 500 Juta, AVG sesuai screenshot)
 const myPortfolio = [
   { code: "BBCA", name: "Bank Central Asia", lot: 450, avg: 5980 },
-  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 360, avg: 3039 },
-  { code: "BBNI", name: "Bank Negara Indonesia", lot: 420, avg: 3771 },
+  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 350, avg: 3039 },
+  { code: "BBNI", name: "Bank Negara Indonesia", lot: 400, avg: 3771 },
   { code: "WBSA", name: "BSA Logistics", lot: 380, avg: 1160 },
-  { code: "HUMI", name: "Humpuss Maritim", lot: 900, avg: 175.03 }, // Avg di-set agar P/L 7.98% di harga 189
+  { code: "HUMI", name: "Humpuss Maritim", lot: 1000, avg: 175.032 }, // Avg diset agar P/L 7.98% di harga market 189
 ];
 
 // DATA WATCHLIST / TRADING PLAN KELAS
@@ -87,7 +87,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-gray-200 font-sans pb-24">
-      {/* HEADER PREMIUM */}
+      {/* HEADER */}
       <header className="px-6 py-5 border-b border-gray-800 bg-[#0d0d0d]/90 backdrop-blur-xl sticky top-0 z-50">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <div>
@@ -113,22 +113,23 @@ export default function Home() {
               <iframe src="https://s.tradingview.com/widgetembed/?symbol=IDX:COMPOSITE&interval=D&theme=dark" width="100%" height="240" frameBorder="0"></iframe>
             </div>
 
-            {/* TOTAL SUMMARY */}
+            {/* TOTAL SUMMARY - UI FIX SPACING */}
             <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-gray-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">💼</div>
-              <p className="text-xs text-gray-500 font-bold tracking-widest mb-2 uppercase">Total Asset Value</p>
-              <h2 className="text-4xl font-black text-white tracking-tighter mb-4">
-                <span className="text-sm font-normal text-gray-500 mr-1">Rp</span>{formatRp(totalValue)}
+              <p className="text-xs text-gray-500 font-bold tracking-[0.2em] mb-3 uppercase">Total Asset Value</p>
+              <h2 className="text-4xl font-black text-white tracking-normal mb-6 flex items-baseline gap-2">
+                <span className="text-lg font-medium text-gray-500">Rp</span>
+                {formatRp(totalValue)}
               </h2>
-              <div className="flex justify-between border-t border-gray-800 pt-4">
+              <div className="flex justify-between border-t border-gray-800 pt-5">
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Floating P/L</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Floating P/L</p>
                   <p className={`text-sm font-black ${floatingPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {floatingPL >= 0 ? '+' : ''}Rp {formatRp(floatingPL)} ({plPercent.toFixed(2)}%)
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Net Capital</p>
+                  <p className="text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Net Capital</p>
                   <p className="text-sm font-black text-gray-300">Rp {formatRp(totalModal)}</p>
                 </div>
               </div>
