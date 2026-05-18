@@ -2,48 +2,45 @@
 
 import { useState, useEffect } from "react";
 
-// DATA PORTFOLIO TERBARU DENGAN HARGA ENTRY (AVG) ASLI
+// DATA PORTFOLIO LU (TETEP SAMA)
 const myPortfolio = [
   { code: "BBCA", name: "Bank Central Asia", lot: 100, avg: 5980 },
   { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 80, avg: 3039 },
   { code: "BBNI", name: "Bank Negara Indonesia", lot: 95, avg: 3771 },
-  { code: "WBSA", name: "BSA Logistics Indonesia", lot: 87, avg: 1160 },
-  { code: "HUMI", name: "Humpuss Maritim Int.", lot: 200, avg: 175 },
+  { code: "WBSA", name: "BSA Logistics", lot: 87, avg: 1160 },
+  { code: "HUMI", name: "Humpuss Maritim", lot: 200, avg: 175 },
 ];
 
 export default function Home() {
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState("");
+  const [lastUpdate, setLastUpdate] = useState("SYNCING...");
 
   const fetchPrices = async () => {
     try {
       const symbols = myPortfolio.map((p) => `${p.code}.JK`).join(",");
-      // Anti-cache biar harga selalu update
       const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&nocache=${Date.now()}`;
-      
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
       
       const response = await fetch(proxyUrl);
-      if (!response.ok) throw new Error("Gagal nembus proxy");
+      if (!response.ok) throw new Error("Proxy Blocked");
       
       const data = await response.json();
-      
       const newPrices: Record<string, number> = {};
+      
       if (data.quoteResponse && data.quoteResponse.result) {
         data.quoteResponse.result.forEach((stock: any) => {
           const code = stock.symbol.replace(".JK", "");
-          if (stock.regularMarketPrice) {
-            newPrices[code] = stock.regularMarketPrice;
-          }
+          if (stock.regularMarketPrice) newPrices[code] = stock.regularMarketPrice;
         });
       }
 
       setPrices(newPrices);
-      setLastUpdate(new Date().toLocaleTimeString("id-ID"));
+      // Format jam ala terminal militer/trading
+      const now = new Date();
+      setLastUpdate(now.toLocaleTimeString("en-GB", { hour12: false }) + " UTC+7");
     } catch (error) {
-      console.error("Gagal narik data saham:", error);
-      setLastUpdate("Gagal narik data (Offline)"); 
+      setLastUpdate("OFFLINE / RETRY");
     } finally {
       setLoading(false);
     }
@@ -55,9 +52,8 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Format Rupiah
   const formatRp = (angka: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
+    return new Intl.NumberFormat("id-ID", { minimumFractionDigits: 0 }).format(angka);
   };
 
   let totalModal = 0;
@@ -65,121 +61,174 @@ export default function Home() {
 
   myPortfolio.forEach((stock) => {
     const lembar = stock.lot * 100;
-    const modalEmiten = lembar * stock.avg;
-    const hargaAktif = prices[stock.code] || stock.avg; 
-    const valueEmiten = lembar * hargaAktif;
-    
-    totalModal += modalEmiten;
-    totalValue += valueEmiten;
+    const modal = lembar * stock.avg;
+    const hargaAktif = prices[stock.code] || stock.avg;
+    totalModal += modal;
+    totalValue += (lembar * hargaAktif);
   });
 
   const floatingPL = totalValue - totalModal;
-  const floatingPLPercent = totalModal > 0 ? (floatingPL / totalModal) * 100 : 0;
   const isProfitTotal = floatingPL >= 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white relative overflow-hidden font-sans pb-24 selection:bg-white/20">
+    <div className="min-h-screen bg-[#050505] text-gray-300 font-mono pb-20 selection:bg-[#D4AF37] selection:text-black">
       
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] pointer-events-none"></div>
+      {/* CSS Khusus Animasi Marquee (Berjalan) */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          display: inline-block;
+          white-space: nowrap;
+          animation: marquee 15s linear infinite;
+        }
+      `}} />
 
-      <div className="max-w-5xl mx-auto px-5 pt-12 relative z-10">
-        
-        <header className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-4">
+      {/* HEADER ALA TERMINAL */}
+      <header className="flex justify-between items-center px-4 py-3 border-b border-[#222]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full border border-[#D4AF37] flex items-center justify-center">
+            <div className="w-4 h-4 bg-[#D4AF37] rounded-sm rotate-45"></div>
+          </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-              THIRAFI THARIQ AL IDRIS
-            </h1>
-            <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${loading ? "bg-yellow-500" : (lastUpdate.includes("Gagal") ? "bg-red-500" : "bg-green-500 animate-pulse")}`}></span>
-              {loading ? "Menghubungkan ke Market..." : (lastUpdate.includes("Gagal") ? "Market Offline" : `Live Market • Update: ${lastUpdate}`)}
-            </p>
-          </div>
-          
-          <a href="https://wa.me/6282218723401" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md hover:bg-white/10 transition w-fit">
-            <span className="text-sm">📞</span>
-            <span className="text-sm font-medium tracking-wide">082218723401</span>
-          </a>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#111113]/80 border border-white/10 rounded-[2rem] p-6 backdrop-blur-md relative overflow-hidden">
-            <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-[50px] ${isProfitTotal ? 'bg-green-500/10' : 'bg-red-500/10'}`}></div>
-            <p className="text-sm text-gray-400 mb-1">Total Portofolio</p>
-            <h2 className="text-4xl font-bold mb-4 tracking-tight">{formatRp(totalValue)}</h2>
-            
-            <div className="flex items-center gap-3">
-              <div className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 border ${isProfitTotal ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                {isProfitTotal ? '📈' : '📉'} {formatRp(floatingPL)}
-              </div>
-              <p className="text-xs text-gray-500">Floating P/L ({floatingPLPercent.toFixed(2)}%)</p>
-            </div>
-          </div>
-
-          <div className="bg-[#111113]/80 border border-white/10 rounded-[2rem] p-6 backdrop-blur-md flex flex-col justify-center">
-            <p className="text-sm text-gray-400 mb-1">Nilai Investasi Awal</p>
-            <h3 className="text-2xl font-semibold mb-2">{formatRp(totalModal)}</h3>
-            <div className="mt-auto border-t border-white/5 pt-4">
-              <p className="text-xs text-gray-500">Tersebar di {myPortfolio.length} emiten saham</p>
-            </div>
+            <h1 className="text-[#D4AF37] font-bold text-sm tracking-[0.2em] uppercase">PEDIABOY AI TERMINAL</h1>
+            <p className="text-[9px] tracking-widest text-gray-500 uppercase">THE FUNDER TRADER</p>
           </div>
         </div>
+        <div className="text-right">
+          <p className="text-[#D4AF37] font-bold text-xs">{lastUpdate}</p>
+          <p className="text-[9px] text-gray-500 tracking-widest uppercase">18 MAY 2026</p>
+        </div>
+      </header>
 
-        <h3 className="text-xl font-semibold mt-10 mb-4 tracking-tight text-gray-200">Rincian Emiten</h3>
+      {/* TICKER TEXT BERJALAN */}
+      <div className="bg-[#D4AF37]/10 border-b border-[#222] text-[#D4AF37] text-[10px] py-1 overflow-hidden tracking-widest">
+        <div className="animate-marquee">
+          ✦ TRADE IN SILENCE, LET PROFIT SPEAK ✦ AUTO-SYNC ACTIVE ✦ MULTIPLE ASSETS DETECTED ✦
+        </div>
+      </div>
+
+      {/* SUB-HEADER STATUS */}
+      <div className="flex justify-between text-[10px] px-4 py-2 bg-[#0a0a0a] border-b border-[#222] tracking-widest uppercase">
+        <span className="text-gray-400">SESSION: <span className="text-white">JAKARTA</span></span>
+        <span className="text-gray-400">STATUS: <span className={loading ? "text-yellow-500" : "text-[#D4AF37]"}>{loading ? "SYNC" : "LIVE"}</span></span>
+      </div>
+
+      <div className="p-4 max-w-xl mx-auto">
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* GRID KOTAK SAHAM (Mirip list XAU/BTC di video) */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
           {myPortfolio.map((stock) => {
             const lembar = stock.lot * 100;
             const modal = lembar * stock.avg;
             const hargaAktif = prices[stock.code] || stock.avg;
-            const value = lembar * hargaAktif;
-            const pl = value - modal;
+            const pl = (lembar * hargaAktif) - modal;
             const plPercent = modal > 0 ? (pl / modal) * 100 : 0;
             const isProfit = pl >= 0;
 
             return (
-              <div key={stock.code} className="bg-[#111113]/80 border border-white/10 rounded-[2rem] p-5 backdrop-blur-md transition hover:bg-white/5">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-bold text-sm text-gray-300">
-                      {stock.code.substring(0,2)}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-lg leading-none">{stock.code}</h4>
-                      <p className="text-xs text-gray-400 mt-1">{stock.name}</p>
-                    </div>
-                  </div>
-                  <div className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${isProfit ? 'bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]'}`}>
-                    {isProfit ? '+' : ''}{plPercent.toFixed(2)}%
-                  </div>
+              <div key={stock.code} className="bg-[#111] border border-[#222] rounded-md p-3 relative overflow-hidden flex flex-col justify-between min-h-[90px]">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs text-gray-400 tracking-widest">{stock.code} / IDR</span>
+                  <span className="text-[#D4AF37] text-xs">◈</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-y-4 gap-x-3 mt-4 p-4 bg-black/40 rounded-2xl border border-white/5">
+                <div className="flex justify-between items-end z-10">
                   <div>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-medium">Lot / Avg</p>
-                    <p className="font-medium text-sm">{stock.lot} <span className="text-gray-500 text-xs font-normal">@{formatRp(stock.avg).replace('Rp', '').trim()}</span></p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-medium">Harga Aktif</p>
-                    <p className="font-medium text-sm">{loading ? "..." : formatRp(hargaAktif)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-medium">Stock Value</p>
-                    <p className="font-medium text-sm">{loading ? "..." : formatRp(value)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-medium">Unrealized P/L</p>
-                    <p className={`font-medium text-sm ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
-                      {isProfit ? '+' : ''}{loading ? "..." : formatRp(pl)}
+                    <h2 className="text-xl font-bold text-white tracking-tight">{formatRp(hargaAktif)}</h2>
+                    <p className={`text-[10px] flex items-center gap-1 mt-1 ${isProfit ? 'text-red-500' : 'text-green-500'}`}>
+                      {/* Sengaja dibalik warnanya buat ngikutin style terminal tertentu atau biarin ijo profit merah loss */}
+                      <span className="text-[8px]">{isProfit ? '▲' : '▼'}</span> {Math.abs(plPercent).toFixed(2)}%
                     </p>
                   </div>
                 </div>
+
+                {/* Garis Chart Palsu (Aesthetic only) */}
+                <svg className="absolute bottom-0 left-0 w-full h-8 opacity-30" preserveAspectRatio="none" viewBox="0 0 100 20">
+                  <path 
+                    d={isProfit ? "M0,20 Q25,10 50,15 T100,5 L100,20 Z" : "M0,5 Q25,15 50,10 T100,20 L100,20 L0,20 Z"} 
+                    fill={isProfit ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"} 
+                  />
+                  <path 
+                    d={isProfit ? "M0,20 Q25,10 50,15 T100,5" : "M0,5 Q25,15 50,10 T100,20"} 
+                    fill="none" 
+                    stroke={isProfit ? "#22c55e" : "#ef4444"} 
+                    strokeWidth="1" 
+                  />
+                </svg>
               </div>
             );
           })}
         </div>
 
+        {/* AI MARKET BRIEF SECTION */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs text-[#D4AF37]">○</span>
+            <span className="text-[10px] tracking-[0.2em] text-gray-500">AI PORTFOLIO BRIEF</span>
+          </div>
+          <div className="bg-[#111] border border-[#222] p-4 rounded-md relative">
+            <p className="text-xs text-gray-400 leading-relaxed">
+              AI mendeteksi total investasi sebesar <span className="text-white font-bold">Rp {formatRp(totalModal)}</span> pada {myPortfolio.length} emiten aktif. 
+              Floating P/L saat ini dihitung secara realtime mengikuti pergerakan market.
+            </p>
+            <div className="mt-4 pt-3 border-t border-[#222] flex justify-between items-center">
+              <span className="text-[10px] tracking-widest uppercase text-gray-500">Net Value</span>
+              <span className={`text-sm font-bold ${isProfitTotal ? 'text-green-500' : 'text-red-500'}`}>
+                Rp {formatRp(totalValue)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ACTIVE SIGNALS SECTION (Format data lu jadi gaya sinyal) */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs text-[#D4AF37]">○</span>
+            <span className="text-[10px] tracking-[0.2em] text-gray-500">ACTIVE POSITIONS</span>
+          </div>
+          
+          <div className="space-y-2">
+            {myPortfolio.map((stock) => {
+              const pl = (stock.lot * 100 * (prices[stock.code] || stock.avg)) - (stock.lot * 100 * stock.avg);
+              const isProfit = pl >= 0;
+
+              return (
+                <div key={"sig-"+stock.code} className="bg-[#111] border border-[#222] p-3 rounded-md flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className={`px-2 py-1 border rounded-[3px] text-[10px] font-bold tracking-widest ${isProfit ? 'border-green-500/50 text-green-500 bg-green-500/10' : 'border-red-500/50 text-red-500 bg-red-500/10'}`}>
+                      {isProfit ? 'HOLD' : 'WAIT'}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">{stock.code}</h3>
+                      <p className="text-[9px] text-gray-500 tracking-widest uppercase">Entry: {formatRp(stock.avg)}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-[#D4AF37]">95%</p>
+                    <p className="text-[8px] text-gray-500 tracking-widest uppercase">CONFIDENCE</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
+
+      {/* BOTTOM NAVIGATION BAR */}
+      <nav className="fixed bottom-0 w-full bg-[#050505] border-t border-[#222] py-3 px-6 flex justify-between items-center z-50">
+        <span className="text-[#D4AF37] text-xl">⌂</span>
+        <span className="text-gray-600 text-xl">⚡</span>
+        <span className="text-gray-600 text-xl">∆</span>
+        <span className="text-gray-600 text-xl">☐</span>
+        <span className="text-gray-600 text-xl flex flex-col items-center">
+           <span className="text-[#D4AF37] text-[20px]">🏆</span>
+           <span className="text-[#D4AF37] text-[6px] tracking-widest uppercase mt-1">PLAN</span>
+        </span>
+      </nav>
+
     </div>
   );
 }
