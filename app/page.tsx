@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 
-// DATA PORTFOLIO LU
+// DATA PORTFOLIO (Jumlah LOT udah di-up biar total modal > 500 Juta)
 const myPortfolio = [
-  { code: "BBCA", name: "Bank Central Asia", lot: 100, avg: 5980 },
-  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 80, avg: 3039 },
-  { code: "BBNI", name: "Bank Negara Indonesia", lot: 95, avg: 3771 },
-  { code: "WBSA", name: "BSA Logistics", lot: 87, avg: 1160 },
-  { code: "HUMI", name: "Humpuss Maritim", lot: 200, avg: 175 },
+  { code: "BBCA", name: "Bank Central Asia", lot: 500, avg: 5980 },
+  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 450, avg: 3039 },
+  { code: "BBNI", name: "Bank Negara Indonesia", lot: 400, avg: 3771 },
+  { code: "WBSA", name: "BSA Logistics", lot: 400, avg: 1160 },
+  { code: "HUMI", name: "Humpuss Maritim", lot: 1500, avg: 175 },
 ];
 
-// DATA SINYAL / WATCHLIST KELAS LU
+// DATA SINYAL / WATCHLIST KELAS 
 const classSignals = [
   {
     code: "LCKM",
@@ -93,7 +93,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchPrices();
-    const interval = setInterval(fetchPrices, 60000);
+    const interval = setInterval(fetchPrices, 60000); // Realtime tiap 60 detik
     return () => clearInterval(interval);
   }, []);
 
@@ -113,11 +113,13 @@ export default function Home() {
   });
 
   const floatingPL = totalValue - totalModal;
+  const floatingPLPercent = totalModal > 0 ? (floatingPL / totalModal) * 100 : 0;
   const isProfitTotal = floatingPL >= 0;
 
   return (
     <div className="min-h-screen bg-[#121212] text-gray-200 font-sans pb-24 selection:bg-blue-500/30">
-      {/* HEADER PROFESSIONAL */}
+      
+      {/* HEADER */}
       <header className="px-5 py-4 border-b border-gray-800 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="flex justify-between items-center">
           <div>
@@ -139,6 +141,7 @@ export default function Home() {
                 {lastUpdate}
               </span>
             </div>
+            <span className="text-[9px] text-gray-500 mt-1 uppercase tracking-widest">Realtime Data</span>
           </div>
         </div>
       </header>
@@ -168,32 +171,36 @@ export default function Home() {
 
             {/* RINGKASAN PORTOFOLIO */}
             <div className="mb-6 bg-gradient-to-br from-[#1a1a1a] to-[#121212] border border-gray-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-              <p className="text-xs text-gray-400 font-medium tracking-wide mb-1">
-                Total Portofolio
-              </p>
-              <h2 className="text-3xl font-bold text-white tracking-tight mb-3">
+              <div className="flex justify-between items-start mb-1">
+                <p className="text-xs text-gray-400 font-medium tracking-wide">
+                  Total Portofolio
+                </p>
+                <div className={`px-2 py-1 rounded text-[10px] font-bold ${isProfitTotal ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                  {isProfitTotal ? '+' : ''}{floatingPLPercent.toFixed(2)}%
+                </div>
+              </div>
+              
+              <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
                 Rp {formatRp(totalValue)}
               </h2>
 
-              <div className="flex items-center gap-3 border-t border-gray-800 pt-3 mt-2">
-                <div
-                  className={`px-3 py-1.5 rounded-md text-xs font-bold ${
-                    isProfitTotal
-                      ? "bg-emerald-500/10 text-emerald-400"
-                      : "bg-red-500/10 text-red-400"
-                  }`}
-                >
-                  {isProfitTotal ? "+" : ""}Rp {formatRp(floatingPL)}
+              <div className="flex flex-col gap-2 border-t border-gray-800 pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Total Modal</span>
+                  <span className="text-sm font-semibold text-gray-300">Rp {formatRp(totalModal)}</span>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Modal: Rp {formatRp(totalModal)}
-                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Floating P/L</span>
+                  <span className={`text-sm font-bold ${isProfitTotal ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {isProfitTotal ? "+" : ""}Rp {formatRp(floatingPL)}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* GRID ASET SAHAM */}
             <h3 className="text-sm font-bold text-gray-300 mb-3 ml-1 tracking-wide">
-              Rincian Emiten
+              Rincian P/L Emiten
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -210,39 +217,39 @@ export default function Home() {
                     key={stock.code}
                     className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4 flex flex-col justify-between transition-all hover:border-gray-700"
                   >
+                    {/* Header Emiten */}
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center font-bold text-xs text-gray-300">
                           {stock.code.substring(0, 2)}
                         </div>
-                        <span className="text-sm font-bold text-white">
-                          {stock.code}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-medium px-2 py-1 rounded bg-gray-800 text-gray-300">
-                        {stock.lot} LOT
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-end mt-2">
-                      <div>
-                        <p className="text-[10px] text-gray-500 mb-0.5">
-                          Avg: {formatRp(stock.avg)}
-                        </p>
-                        <h2 className="text-base font-bold text-white">
-                          {formatRp(hargaAktif)}
-                        </h2>
+                        <div>
+                          <span className="text-sm font-bold text-white block">
+                            {stock.code}
+                          </span>
+                          <span className="text-[10px] text-gray-500">
+                            {stock.lot} LOT
+                          </span>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p
-                          className={`text-xs font-bold ${
-                            isProfit ? "text-emerald-400" : "text-red-400"
-                          }`}
-                        >
-                          {isProfit ? "+" : ""}
-                          {plPercent.toFixed(2)}%
-                        </p>
+                         <span className="text-[10px] font-medium text-gray-500 block mb-0.5">
+                            Harga (Avg: {formatRp(stock.avg)})
+                         </span>
+                         <span className="text-sm font-bold text-white">
+                            Rp {formatRp(hargaAktif)}
+                         </span>
                       </div>
+                    </div>
+
+                    {/* Detail P/L per Emiten */}
+                    <div className={`mt-2 pt-2 border-t border-gray-800/50 flex justify-between items-center ${isProfit ? "text-emerald-400" : "text-red-400"}`}>
+                      <p className="text-xs font-semibold">
+                        P/L: {isProfit ? "+" : ""}Rp {formatRp(pl)}
+                      </p>
+                      <p className="text-xs font-bold bg-black/20 px-2 py-1 rounded">
+                        {isProfit ? "+" : ""}{plPercent.toFixed(2)}%
+                      </p>
                     </div>
                   </div>
                 );
