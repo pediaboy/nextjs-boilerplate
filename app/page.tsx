@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-// TINGGAL UBAH DATA DI SINI KALO MAU UPDATE LOT / HARGA BELI
+// DATA PORTFOLIO TERBARU DENGAN HARGA ENTRY (AVG) ASLI
 const myPortfolio = [
-  { code: "BBCA", name: "Bank Central Asia", lot: 50, avg: 9200 },
-  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 80, avg: 4950 },
-  { code: "HUMI", name: "Humpuss Maritim Int.", lot: 1000, avg: 80 },
-  { code: "WBSA", name: "Warna Bintang Kreasi", lot: 100, avg: 117 },
+  { code: "BBCA", name: "Bank Central Asia", lot: 100, avg: 5980 },
+  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 80, avg: 3039 },
+  { code: "BBNI", name: "Bank Negara Indonesia", lot: 95, avg: 3771 },
+  { code: "WBSA", name: "BSA Logistics Indonesia", lot: 87, avg: 1160 },
+  { code: "HUMI", name: "Humpuss Maritim Int.", lot: 200, avg: 175 },
 ];
 
 export default function Home() {
@@ -17,11 +18,10 @@ export default function Home() {
 
   const fetchPrices = async () => {
     try {
-      // Bikin list saham format Yahoo
       const symbols = myPortfolio.map((p) => `${p.code}.JK`).join(",");
-      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
+      // Anti-cache biar harga selalu update
+      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&nocache=${Date.now()}`;
       
-      // Ganti pake proxy yang lebih ngebut dan stabil
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
       
       const response = await fetch(proxyUrl);
@@ -33,7 +33,6 @@ export default function Home() {
       if (data.quoteResponse && data.quoteResponse.result) {
         data.quoteResponse.result.forEach((stock: any) => {
           const code = stock.symbol.replace(".JK", "");
-          // Kalo API yahoo nyangkut, dia bakal pake harga terakhir
           if (stock.regularMarketPrice) {
             newPrices[code] = stock.regularMarketPrice;
           }
@@ -44,10 +43,8 @@ export default function Home() {
       setLastUpdate(new Date().toLocaleTimeString("id-ID"));
     } catch (error) {
       console.error("Gagal narik data saham:", error);
-      // Kalo error, kita set jam errornya biar tau kapan putusnya
       setLastUpdate("Gagal narik data (Offline)"); 
     } finally {
-      // Apapun yang terjadi (berhasil/gagal), loading wajib berhenti
       setLoading(false);
     }
   };
@@ -77,7 +74,7 @@ export default function Home() {
   });
 
   const floatingPL = totalValue - totalModal;
-  const floatingPLPercent = (floatingPL / totalModal) * 100;
+  const floatingPLPercent = totalModal > 0 ? (floatingPL / totalModal) * 100 : 0;
   const isProfitTotal = floatingPL >= 0;
 
   return (
@@ -137,7 +134,7 @@ export default function Home() {
             const hargaAktif = prices[stock.code] || stock.avg;
             const value = lembar * hargaAktif;
             const pl = value - modal;
-            const plPercent = (pl / modal) * 100;
+            const plPercent = modal > 0 ? (pl / modal) * 100 : 0;
             const isProfit = pl >= 0;
 
             return (
@@ -160,7 +157,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-y-4 gap-x-3 mt-4 p-4 bg-black/40 rounded-2xl border border-white/5">
                   <div>
                     <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-medium">Lot / Avg</p>
-                    <p className="font-medium text-sm">{stock.lot} <span className="text-gray-500 text-xs font-normal">@{stock.avg}</span></p>
+                    <p className="font-medium text-sm">{stock.lot} <span className="text-gray-500 text-xs font-normal">@{formatRp(stock.avg).replace('Rp', '').trim()}</span></p>
                   </div>
                   <div>
                     <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-medium">Harga Aktif</p>
