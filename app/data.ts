@@ -1,45 +1,13 @@
 // app/data.ts
 
-// 1. DATA PORTOFOLIO (LOT di-scale up biar Total > Rp 500 Juta, AVG sesuai screenshot)
 export const myPortfolio = [
-  { 
-    code: "BBCA", 
-    name: "Bank Central Asia", 
-    lot: 450, 
-    avg: 5980, 
-    lastClose: 6125 
-  },
-  { 
-    code: "BBRI", 
-    name: "Bank Rakyat Indonesia", 
-    lot: 350, 
-    avg: 3039, 
-    lastClose: 3060 
-  },
-  { 
-    code: "BBNI", 
-    name: "Bank Negara Indonesia", 
-    lot: 400, 
-    avg: 3771, 
-    lastClose: 3800 
-  },
-  { 
-    code: "WBSA", 
-    name: "BSA Logistics", 
-    lot: 380, 
-    avg: 1160, 
-    lastClose: 1080 
-  },
-  { 
-    code: "HUMI", 
-    name: "Humpuss Maritim", 
-    lot: 1000, 
-    avg: 175.032, 
-    lastClose: 189 
-  }, // Avg ini bikin profit HUMI pas 7.98%
+  { code: "BBCA", name: "Bank Central Asia", lot: 450, avg: 5980, lastClose: 6125 },
+  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 350, avg: 3039, lastClose: 3060 },
+  { code: "BBNI", name: "Bank Negara Indonesia", lot: 400, avg: 3771, lastClose: 3800 },
+  { code: "WBSA", name: "BSA Logistics", lot: 380, avg: 1160, lastClose: 1080 },
+  { code: "HUMI", name: "Humpuss Maritim", lot: 1000, avg: 175.032, lastClose: 189 },
 ];
 
-// 2. DATA WATCHLIST / TRADING PLAN KELAS (Deskripsi murni ketikan lu)
 export const classSignals = [
   {
     code: "LCKM",
@@ -68,9 +36,13 @@ export const classSignals = [
   },
 ];
 
-// 3. KONFIGURASI DONASI SERVER
 export const donationConfig = {
-  title: "Donasi Operasional Server",
-  description: "Dukungan anda sangat membantu untuk menjaga stabilitas infrastruktur server, API market realtime, dan pengembangan sistem terminal ini agar tetap berjalan 24/7.",
-  qrisUrl: "/qris.png", // Taruh foto QRIS lu di folder public dengan nama qris.png
+  title: "Donasi Server",
+  description: "Agar website analisa ini tetap aktif dan bebas diakses oleh semua trader.",
+  contactUrl: "https://wa.me/6282218723401",
+  qrisUrl: "/qris.png", 
+  disclaimer: {
+    title: "Trading Berisiko Tinggi",
+    content: "Seluruh informasi, analisa, dan signal pada website ini hanya untuk edukasi dan referensi umum. Trading forex, gold XAUUSD, crypto BTCUSD, dan instrumen keuangan lain memiliki risiko tinggi. Semua keputusan trading adalah tanggung jawab masing-masing pengguna. Tidak ada jaminan profit. Website ini tidak berafiliasi dengan broker manapun, tidak menjalankan IB, tidak menjual kelas, dan tidak menawarkan pengelolaan dana."
+  }
 };
