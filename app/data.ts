@@ -5,7 +5,7 @@ export const myPortfolio = [
   { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 350, avg: 3039, lastClose: 3060 },
   { code: "BBNI", name: "Bank Negara Indonesia", lot: 400, avg: 3771, lastClose: 3800 },
   { code: "WBSA", name: "BSA Logistics", lot: 380, avg: 1160, lastClose: 1080 },
-  { code: "HUMI", name: "Humpuss Maritim", lot: 1000, avg: 175.032, lastClose: 189 },
+  { code: "HUMI", name: "Humpuss Maritim", lot: 1000, avg: 182, lastClose: 189 },
 ];
 
 export const classSignals = [
