@@ -17,31 +17,41 @@ export default function Home() {
 
   const fetchPrices = async () => {
     try {
-      // Bikin list saham format Yahoo (tambahin .JK buat bursa Indo)
+      // Bikin list saham format Yahoo
       const symbols = myPortfolio.map((p) => `${p.code}.JK`).join(",");
       const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`;
       
-      // Pake proxy biar gak kena block CORS di browser
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      // Ganti pake proxy yang lebih ngebut dan stabil
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
       
       const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error("Gagal nembus proxy");
+      
       const data = await response.json();
       
       const newPrices: Record<string, number> = {};
-      data.quoteResponse.result.forEach((stock: any) => {
-        const code = stock.symbol.replace(".JK", "");
-        newPrices[code] = stock.regularMarketPrice;
-      });
+      if (data.quoteResponse && data.quoteResponse.result) {
+        data.quoteResponse.result.forEach((stock: any) => {
+          const code = stock.symbol.replace(".JK", "");
+          // Kalo API yahoo nyangkut, dia bakal pake harga terakhir
+          if (stock.regularMarketPrice) {
+            newPrices[code] = stock.regularMarketPrice;
+          }
+        });
+      }
 
       setPrices(newPrices);
       setLastUpdate(new Date().toLocaleTimeString("id-ID"));
-      setLoading(false);
     } catch (error) {
       console.error("Gagal narik data saham:", error);
+      // Kalo error, kita set jam errornya biar tau kapan putusnya
+      setLastUpdate("Gagal narik data (Offline)"); 
+    } finally {
+      // Apapun yang terjadi (berhasil/gagal), loading wajib berhenti
+      setLoading(false);
     }
   };
 
-  // Narik data otomatis pertama kali web dibuka & refresh tiap 60 detik
   useEffect(() => {
     fetchPrices();
     const interval = setInterval(fetchPrices, 60000);
@@ -53,14 +63,13 @@ export default function Home() {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka);
   };
 
-  // Kalkulasi Modal & Total Value
   let totalModal = 0;
   let totalValue = 0;
 
   myPortfolio.forEach((stock) => {
     const lembar = stock.lot * 100;
     const modalEmiten = lembar * stock.avg;
-    const hargaAktif = prices[stock.code] || stock.avg; // Kalo API error, pake harga avg sementara
+    const hargaAktif = prices[stock.code] || stock.avg; 
     const valueEmiten = lembar * hargaAktif;
     
     totalModal += modalEmiten;
@@ -74,21 +83,19 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white relative overflow-hidden font-sans pb-24 selection:bg-white/20">
       
-      {/* Background Glow */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-[-10%] w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="max-w-5xl mx-auto px-5 pt-12 relative z-10">
         
-        {/* Header */}
         <header className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
               THIRAFI THARIQ AL IDRIS
             </h1>
             <p className="text-gray-400 text-sm mt-1 flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${loading ? "bg-yellow-500" : "bg-green-500 animate-pulse"}`}></span>
-              {loading ? "Menghubungkan ke Market..." : `Live Market • Update: ${lastUpdate}`}
+              <span className={`w-2 h-2 rounded-full ${loading ? "bg-yellow-500" : (lastUpdate.includes("Gagal") ? "bg-red-500" : "bg-green-500 animate-pulse")}`}></span>
+              {loading ? "Menghubungkan ke Market..." : (lastUpdate.includes("Gagal") ? "Market Offline" : `Live Market • Update: ${lastUpdate}`)}
             </p>
           </div>
           
@@ -98,7 +105,6 @@ export default function Home() {
           </a>
         </header>
 
-        {/* Card Ringkasan Total */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-[#111113]/80 border border-white/10 rounded-[2rem] p-6 backdrop-blur-md relative overflow-hidden">
             <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-[50px] ${isProfitTotal ? 'bg-green-500/10' : 'bg-red-500/10'}`}></div>
