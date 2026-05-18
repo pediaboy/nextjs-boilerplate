@@ -2,42 +2,22 @@
 
 import { useState, useEffect } from "react";
 
-// DATA PORTFOLIO (LOT di-scale up biar Total > Rp 500 Juta, AVG sesuai screenshot)
+// DATA PORTFOLIO - LOT & AVG FIX SESUAI SCREENSHOT
 const myPortfolio = [
-  { code: "BBCA", name: "Bank Central Asia", lot: 450, avg: 5980 },
-  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 350, avg: 3039 },
-  { code: "BBNI", name: "Bank Negara Indonesia", lot: 400, avg: 3771 },
-  { code: "WBSA", name: "BSA Logistics", lot: 380, avg: 1160 },
-  { code: "HUMI", name: "Humpuss Maritim", lot: 1000, avg: 175.032 }, // Avg diset agar P/L 7.98% di harga market 189
+  { code: "BBCA", name: "Bank Central Asia", lot: 450, avg: 5980, lastClose: 6125 },
+  { code: "BBRI", name: "Bank Rakyat Indonesia", lot: 350, avg: 3039, lastClose: 3060 },
+  { code: "BBNI", name: "Bank Negara Indonesia", lot: 400, avg: 3771, lastClose: 3800 },
+  { code: "WBSA", name: "BSA Logistics", lot: 380, avg: 1160, lastClose: 1080 },
+  { code: "HUMI", name: "Humpuss Maritim", lot: 1000, avg: 175.032, lastClose: 189 }, // HUMI PROFIT 7.98%
 ];
 
-// DATA WATCHLIST / TRADING PLAN KELAS
+// DATA WATCHLIST / TRADING PLAN
 const classSignals = [
-  {
-    code: "LCKM",
-    desc: 'Paling favorit buat besok gara" broker XA konsisten nampung di 112 pas sesi post trading tadi.',
-    entry: 112, antri: 108, sl: 98, tp: 125,
-  },
-  {
-    code: "DEWA",
-    desc: 'Volume transaksinya gila"an hari ini tpi MG sm XC keliatan jagain harga di 440 pas akhir sesi.',
-    entry: 440, antri: 430, sl: 420, tp: 465,
-  },
-  {
-    code: "GSMF",
-    desc: "Pola mantulnya udah mulai keliatan buat lanjutin kenaikan mumpung masih kuat nahan di atas 150.",
-    entry: 155, antri: 150, sl: 148, tp: 165,
-  },
-  {
-    code: "HUMI",
-    desc: "Momentum mantul dari bawah masih kerasa bgt tujuannya jelas mau jemput area 200 lagi.",
-    entry: 185, antri: 180, sl: 175, tp: 205,
-  },
-  {
-    code: "BNBR",
-    desc: "Volatilitasnya emang liar tpi cocok buat yg mau main cepet manfaatin pantulan abis dikocok hari ini.",
-    entry: 161, antri: 156, sl: 152, tp: 172,
-  },
+  { code: "LCKM", desc: 'Broker XA konsisten nampung di 112.', entry: 112, antri: 108, sl: 98, tp: 125 },
+  { code: "DEWA", desc: 'MG sm XC jagain harga di 440.', entry: 440, antri: 430, sl: 420, tp: 465 },
+  { code: "GSMF", desc: "Kuat nahan di atas 150.", entry: 155, antri: 150, sl: 148, tp: 165 },
+  { code: "HUMI", desc: "Mau jemput area 200 lagi.", entry: 185, antri: 180, sl: 175, tp: 205 },
+  { code: "BNBR", desc: "Manfaatin pantulan abis dikocok.", entry: 161, antri: 156, sl: 152, tp: 172 },
 ];
 
 export default function Home() {
@@ -49,7 +29,7 @@ export default function Home() {
   const fetchPrices = async () => {
     try {
       const symbols = myPortfolio.map((p) => `${p.code}.JK`).join(",");
-      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&nocache=${Date.now()}`;
+      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&t=${Date.now()}`;
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
       const response = await fetch(proxyUrl);
       const data = await response.json();
@@ -80,7 +60,7 @@ export default function Home() {
   myPortfolio.forEach((s) => {
     const lembar = s.lot * 100;
     totalModal += lembar * s.avg;
-    totalValue += lembar * (prices[s.code] || s.avg);
+    totalValue += lembar * (prices[s.code] || s.lastClose); // Pake lastClose kalo API delay
   });
   const floatingPL = totalValue - totalModal;
   const plPercent = totalModal > 0 ? (floatingPL / totalModal) * 100 : 0;
@@ -108,20 +88,23 @@ export default function Home() {
       <main className="p-4 max-w-xl mx-auto">
         {activeTab === "home" ? (
           <div className="space-y-6">
-            {/* TRADINGVIEW */}
             <div className="rounded-2xl overflow-hidden border border-gray-800 bg-black shadow-2xl">
               <iframe src="https://s.tradingview.com/widgetembed/?symbol=IDX:COMPOSITE&interval=D&theme=dark" width="100%" height="240" frameBorder="0"></iframe>
             </div>
 
-            {/* TOTAL SUMMARY - UI FIX SPACING */}
-            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-gray-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">💼</div>
-              <p className="text-xs text-gray-500 font-bold tracking-[0.2em] mb-3 uppercase">Total Asset Value</p>
-              <h2 className="text-4xl font-black text-white tracking-normal mb-6 flex items-baseline gap-2">
-                <span className="text-lg font-medium text-gray-500">Rp</span>
-                {formatRp(totalValue)}
-              </h2>
-              <div className="flex justify-between border-t border-gray-800 pt-5">
+            {/* TOTAL SUMMARY - FIXED SPACING & MARGIN */}
+            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-gray-800 rounded-3xl p-7 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-5 opacity-10 text-4xl">💼</div>
+              <p className="text-xs text-gray-500 font-bold tracking-[0.2em] mb-4 uppercase">Total Asset Value</p>
+              
+              <div className="flex items-baseline gap-3 mb-8">
+                <span className="text-xl font-medium text-gray-500">Rp</span>
+                <h2 className="text-4xl font-black text-white tracking-normal leading-none">
+                  {formatRp(totalValue)}
+                </h2>
+              </div>
+
+              <div className="flex justify-between border-t border-gray-800 pt-6">
                 <div>
                   <p className="text-[10px] text-gray-500 uppercase font-bold mb-1 tracking-widest">Floating P/L</p>
                   <p className={`text-sm font-black ${floatingPL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -138,27 +121,32 @@ export default function Home() {
             {/* ASSET LIST */}
             <div className="grid grid-cols-1 gap-3">
               {myPortfolio.map((s) => {
-                const cur = prices[s.code] || s.avg;
+                const cur = prices[s.code] || s.lastClose;
                 const pl = (s.lot * 100 * cur) - (s.lot * 100 * s.avg);
                 const pct = (pl / (s.lot * 100 * s.avg)) * 100;
                 return (
-                  <div key={s.code} className="bg-[#161616] border border-gray-800 rounded-2xl p-4 hover:border-gray-600 transition-all">
-                    <div className="flex justify-between items-center mb-3">
+                  <div key={s.code} className="bg-[#161616] border border-gray-800 rounded-2xl p-4 hover:border-gray-700 transition-all">
+                    <div className="flex justify-between items-center mb-1">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center font-black text-xs text-white border border-gray-700">
+                        <div className="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center font-black text-xs text-white border border-gray-700">
                           {s.code.substring(0,2)}
                         </div>
                         <div>
                           <span className="text-sm font-black text-white block">{s.code}</span>
-                          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">{s.lot} LOT • AVG {formatRp(s.avg)}</span>
+                          <span className="text-[10px] text-gray-500 font-bold uppercase">
+                            {s.lot} LOT • AVG <span className="text-gray-400">{formatRp(s.avg)}</span>
+                          </span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs font-black text-white">Rp {formatRp(cur)}</p>
-                        <p className={`text-[10px] font-bold ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {pl >= 0 ? '▲' : '▼'} {formatRp(pl)} ({pct.toFixed(2)}%)
-                        </p>
+                        <p className="text-[10px] text-gray-500 uppercase font-bold mb-0.5 tracking-tighter">Market Price</p>
+                        <p className="text-sm font-black text-white italic">Rp {formatRp(cur)}</p>
                       </div>
+                    </div>
+                    <div className="flex justify-end mt-2 pt-2 border-t border-gray-800/50">
+                      <p className={`text-[11px] font-black ${pl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        P/L: {pl >= 0 ? '▲ +' : '▼ -'}Rp {formatRp(Math.abs(pl))} ({pct.toFixed(2)}%)
+                      </p>
                     </div>
                   </div>
                 );
@@ -167,7 +155,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="space-y-4">
-            <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.4em] mb-4 text-center">Exclusive Trading Plan</h2>
+             {/* HALAMAN PLAN TETEP SAMA */}
+             <h2 className="text-sm font-black text-gray-500 uppercase tracking-[0.4em] mb-4 text-center">Exclusive Trading Plan</h2>
             {classSignals.map((sig, i) => (
               <div key={i} className="bg-[#161616] border-l-4 border-l-blue-500 border-y border-r border-gray-800 rounded-r-2xl p-5 shadow-xl">
                 <div className="flex justify-between items-center mb-3">
@@ -183,7 +172,7 @@ export default function Home() {
                 </div>
               </div>
             ))}
-            <div className="p-6 text-center text-[10px] text-gray-600 font-bold tracking-widest uppercase leading-loose border border-dashed border-gray-800 rounded-3xl mt-10">
+             <div className="p-6 text-center text-[10px] text-gray-600 font-bold tracking-widest uppercase leading-loose border border-dashed border-gray-800 rounded-3xl mt-10">
               ⚠️ Postingan ini bukan ajakan, sesuaikan sama money management masing masing.
             </div>
           </div>
