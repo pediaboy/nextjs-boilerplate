@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-// Pastikan donationConfig juga di-import dari data.ts
 import { classSignals, donationConfig } from "./data";
 
 type NewsItem = {
@@ -22,10 +21,16 @@ export default function TerminalWeb() {
   const fetchNews = async () => {
     try {
       setLoadingNews(true);
-      const rssQuery = encodeURIComponent("https://news.google.com/rss/search?q=saham+OR+IHSG+OR+bursa+efek+indonesia+when:1d&hl=id&gl=ID&ceid=ID:id");
-      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssQuery}`;
       
-      const res = await fetch(apiUrl);
+      // JURUS ANTI CACHE: Tambahin timestamp detik ini di dalam URL Google biar dianggap URL baru terus
+      const timestamp = Date.now();
+      const rssQuery = encodeURIComponent(`https://news.google.com/rss/search?q=saham+OR+IHSG+OR+bursa+efek+indonesia+when:1d&hl=id&gl=ID&ceid=ID:id&_t=${timestamp}`);
+      
+      // Tambahin timestamp juga di URL API-nya
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssQuery}&t=${timestamp}`;
+      
+      // Wajib kasih { cache: 'no-store' } biar Vercel gak nyimpen data basi
+      const res = await fetch(apiUrl, { cache: 'no-store' });
       const data = await res.json();
 
       if (data && data.items) {
@@ -34,6 +39,7 @@ export default function TerminalWeb() {
           link: item.link,
           source: item.title.split(" - ").pop() || "Google News",
           titleClean: item.title.substring(0, item.title.lastIndexOf(" - ")) || item.title,
+          // Format jam biar lebih enak dibaca
           pubDate: new Date(item.pubDate).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' }) + " WIB",
         }));
         
@@ -41,7 +47,7 @@ export default function TerminalWeb() {
         setLastUpdate(new Date().toLocaleTimeString("id-ID") + " WIB");
       }
     } catch (error) {
-      console.error("Gagal menarik berita:", error);
+      console.error("Gagal menarik berita realtime:", error);
       setLastUpdate("Offline");
     } finally {
       setLoadingNews(false);
@@ -50,7 +56,8 @@ export default function TerminalWeb() {
 
   useEffect(() => {
     fetchNews();
-    const interval = setInterval(fetchNews, 300000); 
+    // Auto-refresh berita tiap 2 menit (120000 ms) biar cepet dapet sentimen baru
+    const interval = setInterval(fetchNews, 120000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -63,7 +70,6 @@ export default function TerminalWeb() {
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans pb-28 selection:bg-emerald-500/30">
       
-      {/* HEADER ELEGAN */}
       <header className="px-6 py-4 border-b border-zinc-800 bg-[#050505]/95 backdrop-blur-xl sticky top-0 z-50 shadow-md">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <div>
@@ -94,11 +100,14 @@ export default function TerminalWeb() {
                   <span className="text-emerald-500 text-sm">📊</span>
                   <h2 className="text-xs font-black text-white uppercase tracking-widest">IHSG Composite Chart</h2>
                 </div>
-                <span className="text-[9px] font-black bg-zinc-800 text-emerald-400 px-2 py-1 rounded tracking-widest uppercase border border-zinc-700">Live Data</span>
+                <span className="text-[9px] font-black bg-zinc-800 text-emerald-400 px-2 py-1 rounded tracking-widest uppercase border border-zinc-700">1 Min Live</span>
               </div>
               <div className="h-[280px] w-full bg-black">
+                {/* UBAH INTERVAL: interval=1 (1 Menit) biar chart gerak agresif. 
+                  Saran: Kalau bursa lagi tutup, chart tetep diem. Nanti buka jam 09.00 WIB baru goyang lagi.
+                */}
                 <iframe 
-                  src="https://s.tradingview.com/widgetembed/?symbol=IDX:COMPOSITE&interval=D&theme=dark&hidesidetoolbar=1" 
+                  src="https://s.tradingview.com/widgetembed/?symbol=IDX:COMPOSITE&interval=1&theme=dark&hidesidetoolbar=1" 
                   width="100%" 
                   height="100%" 
                   frameBorder="0"
@@ -120,7 +129,7 @@ export default function TerminalWeb() {
               <div className="p-4 space-y-3 h-[400px] overflow-y-auto">
                 {loadingNews && news.length === 0 ? (
                   <div className="text-center py-10 text-zinc-500 text-sm font-mono animate-pulse">
-                    [+] Scraping live news dari Google...
+                    [+] Menembus proteksi Cache... Menarik berita terbaru...
                   </div>
                 ) : (
                   news.map((item, idx) => (
@@ -187,12 +196,10 @@ export default function TerminalWeb() {
         )}
 
         {/* ==============================================
-            TAB INFO: DONASI & DISCLAIMER (BALIK LAGI)
+            TAB INFO: DONASI & DISCLAIMER
             ============================================== */}
         {activeTab === "info" && (
           <div className="animate-fade-in pt-4 max-w-sm mx-auto space-y-6">
-            
-            {/* Kartu Donasi */}
             <div className="bg-[#161616] border border-zinc-800 rounded-[2.5rem] p-8 shadow-2xl text-center">
                <div className="text-yellow-500 text-2xl mb-2">💛</div>
                <h2 className="text-lg font-black text-white uppercase tracking-widest mb-2">{donationConfig.title}</h2>
@@ -205,7 +212,6 @@ export default function TerminalWeb() {
                <a href={donationConfig.contactUrl} target="_blank" className="block w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] tracking-[0.2em] uppercase py-3.5 rounded-xl shadow-lg transition-all">Support & Contact</a>
             </div>
 
-            {/* Disclaimer */}
             <div className="text-left space-y-3 px-2 pb-10">
                <div className="flex items-center gap-2 text-yellow-500">
                  <span className="text-lg font-bold">◈</span>
