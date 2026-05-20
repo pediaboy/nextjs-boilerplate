@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { classSignals, donationConfig } from "./data";
+import { scalpingSignals, swingSignals, donationConfig } from "./data";
 
 type NewsItem = {
   title: string;
@@ -13,6 +13,7 @@ type NewsItem = {
 
 export default function TerminalWeb() {
   const [activeTab, setActiveTab] = useState("market");
+  const [planType, setPlanType] = useState<"scalping" | "swing">("scalping");
   
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
@@ -60,10 +61,11 @@ export default function TerminalWeb() {
     return () => clearInterval(timer);
   }, []);
 
+  const currentSignals = planType === "scalping" ? scalpingSignals : swingSignals;
+
   return (
     <div className="min-h-screen bg-[#080808] text-zinc-300 font-sans pb-28 selection:bg-[#D4AF37]/30">
       
-      {/* HEADER TEMA GOLD */}
       <header className="px-6 py-4 border-b border-[#D4AF37]/20 bg-[#080808]/95 backdrop-blur-xl sticky top-0 z-50 shadow-md">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <div>
@@ -94,7 +96,6 @@ export default function TerminalWeb() {
                   <span className="text-[#D4AF37] text-sm">📊</span>
                   <h2 className="text-xs font-bold text-white uppercase tracking-widest">IHSG Composite</h2>
                 </div>
-                {/* UBAH INTERVAL JADI 'D' DISINI BIAR GAK ERROR */}
                 <span className="text-[9px] font-black bg-[#1a1a1a] text-[#D4AF37] px-2 py-1 rounded tracking-widest uppercase border border-[#D4AF37]/30">Daily</span>
               </div>
               <div className="h-[280px] w-full bg-[#0d0d0d]">
@@ -148,47 +149,80 @@ export default function TerminalWeb() {
         )}
 
         {/* ==============================================
-            TAB PLAN: EXCLUSIVE TRADING PLAN
+            TAB PLAN: EXCLUSIVE TRADING PLAN (SWING & SCALPING)
             ============================================== */}
         {activeTab === "plan" && (
           <div className="space-y-4 animate-fade-in pt-2">
-             {classSignals.map((sig, i) => (
-              <div key={i} className="bg-[#111111] border-l-4 border-l-[#D4AF37] border border-zinc-800 rounded-r-2xl p-5 shadow-xl">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xl font-bold text-white">{sig.code}</h3>
-                  <span className="text-[9px] font-black bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-1 rounded uppercase tracking-widest border border-[#D4AF37]/20">Active</span>
+             
+             {/* TOGGLE BUTTONS SCALPING / SWING */}
+             <div className="flex bg-[#111111] rounded-xl p-1.5 border border-[#D4AF37]/20 mb-4 shadow-xl">
+               <button 
+                 onClick={() => setPlanType("scalping")} 
+                 className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-lg transition-all ${planType === "scalping" ? "bg-[#D4AF37] text-black shadow-md" : "text-zinc-500 hover:text-zinc-300"}`}
+               >
+                 Scalping
+               </button>
+               <button 
+                 onClick={() => setPlanType("swing")} 
+                 className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-lg transition-all ${planType === "swing" ? "bg-[#D4AF37] text-black shadow-md" : "text-zinc-500 hover:text-zinc-300"}`}
+               >
+                 Swing
+               </button>
+             </div>
+
+             {/* DESKRIPSI KATEGORI */}
+             <div className="mb-6 text-center bg-[#111] border border-zinc-800 p-4 rounded-2xl shadow-inner">
+                <p className="text-[10px] md:text-xs text-zinc-400 italic leading-relaxed">
+                   {planType === "scalping"
+                     ? '"Buat yg pergerakannya liar, saham gorengan, atau yg likuiditasnya tipis. Wajib fast in fast out, jgn di-hold kalo kaga sesuai plan."'
+                     : '"Buat bluechip atau saham yg kapitalisasinya lumayan gede, pergerakan lebih lambat, asik buat nunggu pijakan mantul di support."'}
+                </p>
+             </div>
+
+             {/* LIST SAHAM SESUAI KATEGORI YANG DIPILIH */}
+             {currentSignals.map((sig, i) => (
+              <div key={i} className="bg-[#111111] border-l-4 border-l-[#D4AF37] border border-zinc-800 rounded-r-2xl p-5 shadow-xl transition-all hover:border-zinc-700">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-white tracking-widest">{sig.code}</h3>
+                  <span className="text-[9px] font-black bg-[#D4AF37]/10 text-[#D4AF37] px-2.5 py-1.5 rounded uppercase tracking-widest border border-[#D4AF37]/20 shadow-sm">
+                    {planType.toUpperCase()}
+                  </span>
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed mb-4">"{sig.desc}"</p>
+                
                 <div className="grid grid-cols-4 gap-2 text-center uppercase font-bold text-[10px]">
-                  <div className="bg-[#0d0d0d] p-2 rounded-lg border border-zinc-800">
+                  <div className="bg-[#0d0d0d] p-2 rounded-lg border border-zinc-800 shadow-inner">
                     <p className="text-[8px] text-zinc-500 mb-1">Entry</p>
                     <p className="text-[#D4AF37]">{sig.entry}</p>
                   </div>
-                  <div className="bg-[#0d0d0d] p-2 rounded-lg border border-zinc-800">
+                  <div className="bg-[#0d0d0d] p-2 rounded-lg border border-zinc-800 shadow-inner">
                     <p className="text-[8px] text-zinc-500 mb-1">Antri</p>
                     <p className="text-zinc-400">{sig.antri}</p>
                   </div>
-                  <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/10">
+                  <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/10 shadow-inner">
                     <p className="text-[8px] text-red-500 mb-1">SL</p>
                     <p className="text-red-400">{sig.sl}</p>
                   </div>
-                  <div className="bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10">
+                  <div className="bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10 shadow-inner">
                     <p className="text-[8px] text-emerald-500 mb-1">TP</p>
                     <p className="text-emerald-400">{sig.tp}</p>
                   </div>
                 </div>
               </div>
             ))}
+
+            {/* DISCLAIMER PLAN */}
+            <div className="p-5 text-center text-[10px] text-zinc-600 font-bold tracking-widest uppercase leading-loose border border-dashed border-zinc-800 rounded-3xl mt-8">
+              ⚠️ Postingan ini bukan ajakan ya atur aja mm masing".
+            </div>
           </div>
         )}
 
         {/* ==============================================
-            TAB INFO: DONASI & DISCLAIMER (Sesuai Referensi)
+            TAB INFO: DONASI & DISCLAIMER
             ============================================== */}
         {activeTab === "info" && (
           <div className="animate-fade-in pt-2 max-w-sm mx-auto space-y-6">
             
-            {/* Box Donasi Persis Referensi */}
             <div className="bg-[#0d0d0d] border border-[#D4AF37]/20 rounded-3xl p-8 text-center shadow-2xl relative">
                <h2 className="text-sm font-bold text-[#D4AF37] mb-3 flex items-center justify-center gap-2">
                  <span className="text-lg">💛</span> Donasi Server
@@ -201,13 +235,11 @@ export default function TerminalWeb() {
                   <img src={donationConfig.qrisUrl} alt="QRIS" className="w-full h-full object-cover" onError={(e) => {(e.target as any).src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DonasiServerThirafi";}}/>
                </div>
                
-               {/* Tombol Biru Persis Referensi */}
                <a href={donationConfig.contactUrl} target="_blank" className="block w-4/5 mx-auto bg-[#3b82f6] hover:bg-blue-500 text-white font-bold text-[12px] py-3 rounded-xl transition-all shadow-md">
                  Support & Contact
                </a>
             </div>
 
-            {/* Disclaimer Persis Referensi */}
             <div className="px-2 pb-10">
                <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2 mb-4">
                  <span className="text-[#D4AF37] text-lg">♦</span> DISCLAIMER
