@@ -3,23 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { mondaySignals, mappingIntro, donationConfig, eduPackages } from "./data";
 
-type NewsItem = {
-  title: string;
-  link: string;
-  pubDate: string;
-  source: string;
-  titleClean: string;
-};
-
 export default function TerminalWeb() {
-  const [activeTab, setActiveTab] = useState("edu"); // Buka tab edukasi buat preview
-  const [planView, setPlanView] = useState<"entry" | "deskripsi">("entry");
+  const [activeTab, setActiveTab] = useState("edu"); // Default buka edu buat lihat tampilan baru
+  const [planView, setPlanView] = useState("entry");
   
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [news, setNews] = useState([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [lastUpdate, setLastUpdate] = useState("Syncing...");
 
-  const formatRupiah = (angka: number) => {
+  // Fungsi buat bikin angka jadi format Rp
+  const formatRupiah = (angka) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
   };
 
@@ -34,7 +27,7 @@ export default function TerminalWeb() {
       const data = await res.json();
 
       if (data && data.items) {
-        const formattedNews = data.items.slice(0, 15).map((item: any) => ({
+        const formattedNews = data.items.slice(0, 15).map((item) => ({
           title: item.title,
           link: item.link,
           source: item.title.split(" - ").pop() || "Google News",
@@ -66,7 +59,6 @@ export default function TerminalWeb() {
   }, []);
 
   return (
-    {/* TEMA BARU: Midnight Navy (bg-[#0B1120]) dengan teks slate dan aksen Cyan */}
     <div className="min-h-screen bg-[#0B1120] text-slate-300 font-sans pb-28 selection:bg-cyan-500/30">
       
       {/* HEADER TEMA FINTECH */}
@@ -278,10 +270,10 @@ export default function TerminalWeb() {
                </p>
                
                <div className="bg-white p-3 rounded-2xl inline-block mb-8 w-48 h-48 border-[6px] border-[#0B1120] shadow-inner">
-                  <img src={donationConfig.qrisUrl} alt="QRIS" className="w-full h-full object-cover" onError={(e) => {(e.target as any).src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DonasiServerThirafi";}}/>
+                  <img src={donationConfig.qrisUrl} alt="QRIS" className="w-full h-full object-cover" onError={(e) => {e.target.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DonasiServerThirafi";}}/>
                </div>
                
-               <a href={donationConfig.contactUrl} target="_blank" className="block w-4/5 mx-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-[12px] py-3 rounded-xl transition-all shadow-md">
+               <a href={donationConfig.contactUrl} target="_blank" rel="noopener noreferrer" className="block w-4/5 mx-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-[12px] py-3 rounded-xl transition-all shadow-md">
                  Support & Contact
                </a>
             </div>
@@ -303,7 +295,7 @@ export default function TerminalWeb() {
 
       </main>
 
-      {/* NAVBAR BAWAH - UPDATE JADI 4 MENU */}
+      {/* NAVBAR BAWAH */}
       <nav className="fixed bottom-0 w-full bg-[#0B1120]/95 backdrop-blur-2xl border-t border-cyan-500/20 py-4 px-6 flex justify-between items-center z-50">
         <button onClick={() => setActiveTab("market")} className={`flex flex-col items-center gap-1.5 transition-all w-1/4 ${activeTab === 'market' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
           <span className="text-xl">📊</span><span className="text-[8px] font-bold uppercase tracking-widest">Market</span>
