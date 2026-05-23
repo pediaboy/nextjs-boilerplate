@@ -11,7 +11,6 @@ type NewsItem = {
   titleClean: string;
 };
 
-// FIX: Tambahan interface buat nanganin strict TS biar kaga 'any'
 interface RssItem {
   title: string;
   link: string;
@@ -41,7 +40,6 @@ export default function TerminalWeb() {
       const data = await res.json();
 
       if (data && data.items) {
-        // FIX: Pake interface RssItem di sini
         const formattedNews = data.items.slice(0, 15).map((item: RssItem) => ({
           title: item.title,
           link: item.link,
@@ -213,7 +211,7 @@ export default function TerminalWeb() {
             
             <div className="text-center mb-8">
               <span className="inline-block px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-black tracking-widest uppercase rounded-full mb-3">
-                🔥 Flash Sale Promo 40%
+                🔥 Flash Sale s/d 27 Mei
               </span>
               <h2 className="text-2xl font-black text-white tracking-wide">Level Up Your Game</h2>
               <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">
