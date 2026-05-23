@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { mondaySignals, mappingIntro, donationConfig, eduPackages } from "./data";
 
-// 1. BALIKIN TIPE DATA TYPESCRIPT BIAR VERCEL GAK ERROR
 type NewsItem = {
   title: string;
   link: string;
@@ -13,14 +12,14 @@ type NewsItem = {
 };
 
 export default function TerminalWeb() {
-  const [activeTab, setActiveTab] = useState("edu"); 
+  // FIX: Default diubah ke "market" biar pas buka web langsung liat chart
+  const [activeTab, setActiveTab] = useState("market"); 
   const [planView, setPlanView] = useState<"entry" | "deskripsi">("entry");
   
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [lastUpdate, setLastUpdate] = useState("Syncing...");
 
-  // 2. FIX UTAMA: NAMBAHIN TIPE (angka: number)
   const formatRupiah = (angka: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
   };
@@ -101,7 +100,6 @@ export default function TerminalWeb() {
                 <span className="text-[9px] font-black bg-cyan-950 text-cyan-300 px-2 py-1 rounded tracking-widest uppercase border border-cyan-500/30">Daily Only</span>
               </div>
               <div className="h-[280px] w-full bg-[#050810]">
-                {/* 3. FIX CHART: Pastiin interval=D dan dikasih tau ke user cuma bisa Daily */}
                 <iframe src="https://s.tradingview.com/widgetembed/?symbol=IDX:COMPOSITE&interval=D&theme=dark&hidesidetoolbar=1" width="100%" height="100%" frameBorder="0"></iframe>
               </div>
             </section>
