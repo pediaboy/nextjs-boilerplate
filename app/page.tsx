@@ -11,8 +11,14 @@ type NewsItem = {
   titleClean: string;
 };
 
+// FIX: Tambahan interface buat nanganin strict TS biar kaga 'any'
+interface RssItem {
+  title: string;
+  link: string;
+  pubDate: string;
+}
+
 export default function TerminalWeb() {
-  // FIX: Default diubah ke "market" biar pas buka web langsung liat chart
   const [activeTab, setActiveTab] = useState("market"); 
   const [planView, setPlanView] = useState<"entry" | "deskripsi">("entry");
   
@@ -35,7 +41,8 @@ export default function TerminalWeb() {
       const data = await res.json();
 
       if (data && data.items) {
-        const formattedNews = data.items.slice(0, 15).map((item: any) => ({
+        // FIX: Pake interface RssItem di sini
+        const formattedNews = data.items.slice(0, 15).map((item: RssItem) => ({
           title: item.title,
           link: item.link,
           source: item.title.split(" - ").pop() || "Google News",
