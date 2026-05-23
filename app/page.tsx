@@ -3,16 +3,25 @@
 import React, { useState, useEffect } from "react";
 import { mondaySignals, mappingIntro, donationConfig, eduPackages } from "./data";
 
+// 1. BALIKIN TIPE DATA TYPESCRIPT BIAR VERCEL GAK ERROR
+type NewsItem = {
+  title: string;
+  link: string;
+  pubDate: string;
+  source: string;
+  titleClean: string;
+};
+
 export default function TerminalWeb() {
-  const [activeTab, setActiveTab] = useState("edu"); // Default buka edu buat lihat tampilan baru
-  const [planView, setPlanView] = useState("entry");
+  const [activeTab, setActiveTab] = useState("edu"); 
+  const [planView, setPlanView] = useState<"entry" | "deskripsi">("entry");
   
-  const [news, setNews] = useState([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [lastUpdate, setLastUpdate] = useState("Syncing...");
 
-  // Fungsi buat bikin angka jadi format Rp
-  const formatRupiah = (angka) => {
+  // 2. FIX UTAMA: NAMBAHIN TIPE (angka: number)
+  const formatRupiah = (angka: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
   };
 
@@ -27,7 +36,7 @@ export default function TerminalWeb() {
       const data = await res.json();
 
       if (data && data.items) {
-        const formattedNews = data.items.slice(0, 15).map((item) => ({
+        const formattedNews = data.items.slice(0, 15).map((item: any) => ({
           title: item.title,
           link: item.link,
           source: item.title.split(" - ").pop() || "Google News",
@@ -61,7 +70,6 @@ export default function TerminalWeb() {
   return (
     <div className="min-h-screen bg-[#0B1120] text-slate-300 font-sans pb-28 selection:bg-cyan-500/30">
       
-      {/* HEADER TEMA FINTECH */}
       <header className="px-6 py-4 border-b border-cyan-500/20 bg-[#0B1120]/95 backdrop-blur-xl sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,230,243,0.05)]">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <div>
@@ -81,9 +89,7 @@ export default function TerminalWeb() {
 
       <main className="max-w-3xl mx-auto p-4 mt-2">
         
-        {/* ==============================================
-            TAB MARKET
-            ============================================== */}
+        {/* TAB MARKET */}
         {activeTab === "market" && (
           <div className="space-y-6 animate-fade-in">
             <section className="bg-[#131C31] border border-cyan-500/20 rounded-2xl overflow-hidden shadow-2xl">
@@ -92,9 +98,10 @@ export default function TerminalWeb() {
                   <span className="text-cyan-400 text-sm">📊</span>
                   <h2 className="text-xs font-bold text-white uppercase tracking-widest">IHSG Composite</h2>
                 </div>
-                <span className="text-[9px] font-black bg-cyan-950 text-cyan-300 px-2 py-1 rounded tracking-widest uppercase border border-cyan-500/30">Daily</span>
+                <span className="text-[9px] font-black bg-cyan-950 text-cyan-300 px-2 py-1 rounded tracking-widest uppercase border border-cyan-500/30">Daily Only</span>
               </div>
               <div className="h-[280px] w-full bg-[#050810]">
+                {/* 3. FIX CHART: Pastiin interval=D dan dikasih tau ke user cuma bisa Daily */}
                 <iframe src="https://s.tradingview.com/widgetembed/?symbol=IDX:COMPOSITE&interval=D&theme=dark&hidesidetoolbar=1" width="100%" height="100%" frameBorder="0"></iframe>
               </div>
             </section>
@@ -131,9 +138,7 @@ export default function TerminalWeb() {
           </div>
         )}
 
-        {/* ==============================================
-            TAB PLAN
-            ============================================== */}
+        {/* TAB PLAN */}
         {activeTab === "plan" && (
           <div className="space-y-4 animate-fade-in pt-2">
              <div className="flex bg-[#131C31] rounded-xl p-1.5 border border-cyan-500/20 mb-4 shadow-xl">
@@ -197,9 +202,7 @@ export default function TerminalWeb() {
           </div>
         )}
 
-        {/* ==============================================
-            TAB EDUKASI (BARU)
-            ============================================== */}
+        {/* TAB EDUKASI */}
         {activeTab === "edu" && (
           <div className="animate-fade-in pt-2 space-y-6">
             
@@ -216,7 +219,6 @@ export default function TerminalWeb() {
             <div className="space-y-5">
               {eduPackages.map((pkg, i) => (
                 <div key={i} className="bg-[#131C31] border border-cyan-500/20 rounded-3xl p-6 shadow-[0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                  {/* Efek glow background */}
                   <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-all"></div>
                   
                   <div className="relative z-10">
@@ -256,9 +258,7 @@ export default function TerminalWeb() {
           </div>
         )}
 
-        {/* ==============================================
-            TAB INFO
-            ============================================== */}
+        {/* TAB INFO */}
         {activeTab === "info" && (
           <div className="animate-fade-in pt-2 max-w-sm mx-auto space-y-6">
             <div className="bg-[#131C31] border border-cyan-500/20 rounded-3xl p-8 text-center shadow-2xl relative">
@@ -270,7 +270,7 @@ export default function TerminalWeb() {
                </p>
                
                <div className="bg-white p-3 rounded-2xl inline-block mb-8 w-48 h-48 border-[6px] border-[#0B1120] shadow-inner">
-                  <img src={donationConfig.qrisUrl} alt="QRIS" className="w-full h-full object-cover" onError={(e) => {e.target.src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DonasiServerThirafi";}}/>
+                  <img src={donationConfig.qrisUrl} alt="QRIS" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DonasiServerThirafi"; }}/>
                </div>
                
                <a href={donationConfig.contactUrl} target="_blank" rel="noopener noreferrer" className="block w-4/5 mx-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-[12px] py-3 rounded-xl transition-all shadow-md">
@@ -295,7 +295,6 @@ export default function TerminalWeb() {
 
       </main>
 
-      {/* NAVBAR BAWAH */}
       <nav className="fixed bottom-0 w-full bg-[#0B1120]/95 backdrop-blur-2xl border-t border-cyan-500/20 py-4 px-6 flex justify-between items-center z-50">
         <button onClick={() => setActiveTab("market")} className={`flex flex-col items-center gap-1.5 transition-all w-1/4 ${activeTab === 'market' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
           <span className="text-xl">📊</span><span className="text-[8px] font-bold uppercase tracking-widest">Market</span>
