@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { mondaySignals, mappingIntro, donationConfig, eduPackages } from "./data";
+import { donationConfig, eduPackages } from "./data";
 
 type NewsItem = {
   title: string;
@@ -11,15 +11,9 @@ type NewsItem = {
   titleClean: string;
 };
 
-interface RssItem {
-  title: string;
-  link: string;
-  pubDate: string;
-}
-
 export default function TerminalWeb() {
+  // Default diubah ke "market" biar pas buka web langsung liat chart
   const [activeTab, setActiveTab] = useState("market"); 
-  const [planView, setPlanView] = useState<"entry" | "deskripsi">("entry");
   
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
@@ -40,7 +34,7 @@ export default function TerminalWeb() {
       const data = await res.json();
 
       if (data && data.items) {
-        const formattedNews = data.items.slice(0, 15).map((item: RssItem) => ({
+        const formattedNews = data.items.slice(0, 15).map((item: any) => ({
           title: item.title,
           link: item.link,
           source: item.title.split(" - ").pop() || "Google News",
@@ -141,77 +135,13 @@ export default function TerminalWeb() {
           </div>
         )}
 
-        {/* TAB PLAN */}
-        {activeTab === "plan" && (
-          <div className="space-y-4 animate-fade-in pt-2">
-             <div className="flex bg-[#131C31] rounded-xl p-1.5 border border-cyan-500/20 mb-4 shadow-xl">
-               <button onClick={() => setPlanView("entry")} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-lg transition-all ${planView === "entry" ? "bg-cyan-500 text-slate-900 shadow-[0_0_15px_rgba(0,230,243,0.3)]" : "text-slate-500 hover:text-slate-300"}`}>
-                 Data Entry
-               </button>
-               <button onClick={() => setPlanView("deskripsi")} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-lg transition-all ${planView === "deskripsi" ? "bg-cyan-500 text-slate-900 shadow-[0_0_15px_rgba(0,230,243,0.3)]" : "text-slate-500 hover:text-slate-300"}`}>
-                 Mapping
-               </button>
-             </div>
-
-             {planView === "entry" && (
-               <div className="space-y-4 animate-fade-in">
-                 {mondaySignals.map((sig, i) => (
-                  <div key={i} className="bg-[#131C31] border-l-4 border-l-cyan-400 border border-slate-800 rounded-r-2xl p-5 shadow-xl transition-all hover:border-slate-700">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-bold text-white tracking-widest">{sig.code}</h3>
-                      <span className="text-[9px] font-black bg-cyan-950/50 text-cyan-400 px-2.5 py-1.5 rounded uppercase tracking-widest border border-cyan-500/20 shadow-sm">Watchlist</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2 text-center uppercase font-bold text-[10px]">
-                      <div className="bg-[#0B1120] p-2 rounded-lg border border-slate-800 shadow-inner flex flex-col justify-center">
-                        <p className="text-[8px] text-slate-500 mb-1">Entry</p>
-                        <p className={`text-cyan-400 ${sig.entry.length > 10 ? 'text-[8px] leading-tight' : ''}`}>{sig.entry}</p>
-                      </div>
-                      <div className="bg-[#0B1120] p-2 rounded-lg border border-slate-800 shadow-inner flex flex-col justify-center">
-                        <p className="text-[8px] text-slate-500 mb-1">Antri</p>
-                        <p className="text-slate-300">{sig.antri}</p>
-                      </div>
-                      <div className="bg-rose-500/5 p-2 rounded-lg border border-rose-500/10 shadow-inner flex flex-col justify-center">
-                        <p className="text-[8px] text-rose-500 mb-1">CL</p>
-                        <p className="text-rose-400">{sig.sl}</p>
-                      </div>
-                      <div className="bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10 shadow-inner flex flex-col justify-center">
-                        <p className="text-[8px] text-emerald-500 mb-1">TP</p>
-                        <p className="text-emerald-400">{sig.tp}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-               </div>
-             )}
-
-             {planView === "deskripsi" && (
-               <div className="space-y-4 animate-fade-in">
-                 <div className="bg-[#131C31] border border-cyan-500/10 p-5 rounded-2xl shadow-inner mb-6 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl"></div>
-                    <p className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.3em] mb-3 border-b border-slate-800 pb-2 relative z-10">Market Insight</p>
-                    <p className="text-[11px] md:text-xs text-slate-300 leading-relaxed whitespace-pre-wrap relative z-10">{mappingIntro}</p>
-                 </div>
-
-                 {mondaySignals.map((sig, i) => (
-                  <div key={i} className="bg-[#131C31] border border-slate-800 rounded-2xl p-5 shadow-xl transition-all">
-                    <h3 className="text-lg font-black text-cyan-300 tracking-widest mb-2 border-b border-slate-800/80 pb-2">
-                      ◈ {sig.code}
-                    </h3>
-                    <p className="text-xs text-slate-400 leading-relaxed text-justify">{sig.desc}</p>
-                  </div>
-                ))}
-               </div>
-             )}
-          </div>
-        )}
-
         {/* TAB EDUKASI */}
         {activeTab === "edu" && (
           <div className="animate-fade-in pt-2 space-y-6">
             
             <div className="text-center mb-8">
               <span className="inline-block px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-black tracking-widest uppercase rounded-full mb-3">
-                🔥 Flash Sale s/d 27 Mei
+                🔥 Flash Sale Promo 40%
               </span>
               <h2 className="text-2xl font-black text-white tracking-wide">Level Up Your Game</h2>
               <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto">
@@ -299,16 +229,13 @@ export default function TerminalWeb() {
       </main>
 
       <nav className="fixed bottom-0 w-full bg-[#0B1120]/95 backdrop-blur-2xl border-t border-cyan-500/20 py-4 px-6 flex justify-between items-center z-50">
-        <button onClick={() => setActiveTab("market")} className={`flex flex-col items-center gap-1.5 transition-all w-1/4 ${activeTab === 'market' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
+        <button onClick={() => setActiveTab("market")} className={`flex flex-col items-center gap-1.5 transition-all w-1/3 ${activeTab === 'market' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
           <span className="text-xl">📊</span><span className="text-[8px] font-bold uppercase tracking-widest">Market</span>
         </button>
-        <button onClick={() => setActiveTab("plan")} className={`flex flex-col items-center gap-1.5 transition-all w-1/4 ${activeTab === 'plan' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
-          <span className="text-xl">🎯</span><span className="text-[8px] font-bold uppercase tracking-widest">Plan</span>
-        </button>
-        <button onClick={() => setActiveTab("edu")} className={`flex flex-col items-center gap-1.5 transition-all w-1/4 ${activeTab === 'edu' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
+        <button onClick={() => setActiveTab("edu")} className={`flex flex-col items-center gap-1.5 transition-all w-1/3 ${activeTab === 'edu' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
           <span className="text-xl">🧠</span><span className="text-[8px] font-bold uppercase tracking-widest">Edukasi</span>
         </button>
-        <button onClick={() => setActiveTab("info")} className={`flex flex-col items-center gap-1.5 transition-all w-1/4 ${activeTab === 'info' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
+        <button onClick={() => setActiveTab("info")} className={`flex flex-col items-center gap-1.5 transition-all w-1/3 ${activeTab === 'info' ? 'text-cyan-400 scale-110 drop-shadow-[0_0_8px_rgba(0,230,243,0.5)]' : 'text-slate-500 hover:text-slate-400'}`}>
           <span className="text-xl">⚡</span><span className="text-[8px] font-bold uppercase tracking-widest">Info</span>
         </button>
       </nav>
