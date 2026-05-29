@@ -5,9 +5,9 @@ export const eduPackages = [
   {
     title: "Starter: Technical & Mindset",
     normalPrice: 150000,
-    discountPrice: 90000,
+    discountPrice: 65000,
     desc: "Pondasi wajib biar lu kaga murni tebak-tebakan. Kita bedah cara baca tren chart, mapping support/resist, dan setup money management biar kaga gampang cutloss dalam.",
-    features: ["Video Materi Basic", "PDF Pola Candlestick", "Kalkulator Money Management"]
+    features: ["PDF Materi Basic", "PDF Pola Candlestick", "Kalkulator Money Management"]
   },
   {
     title: "Pro: Tape Reading & Bandarmologi",
